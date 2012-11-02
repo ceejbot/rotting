@@ -9,7 +9,7 @@ var optimist =
 
     .alias('r', 'repo')
     .default('r', process.cwd())
-    .describe('r', 'the repo youd like to examine for rotting code')
+    .describe('r', 'the repo you\'d like to examine for rotting code')
 
     .alias('p', 'prod')
     .default('p', 'master')
@@ -39,6 +39,13 @@ function git(args, cb) {
 }
 function trim (s) { return s.trim() }
 function identity (s) { return s }
+
+function spacepad (input, padto) {
+    var out = '' + input;
+    while (out.length < padto)
+        out = ' ' + out;
+    return out;
+}
 
 function main () {
   console.log('Running against', repoDir.green)
@@ -84,12 +91,13 @@ function main () {
       console.log('')
       if (inprod.length) {
         inprod = inprod.reverse()
+        console.log('---\nBranches in prod that can be deleted:');
         inprod.forEach(function (info) {
-          console.log('  ' + info.branch.green + ' all in prod, please delete remote branch')
+          console.log('  ' + info.branch.green)
         })
         console.log()
         console.log("==Paste the following to delete them all==".red)
-        var deleteThese = 
+        var deleteThese =
           inprod.map(function (info) {
             var branchName = info.branch.replace(/(.*\/)/, '') // take everything after the slash
             return 'git push origin :' + branchName.red + '; git branch -D ' + branchName.red + ';'
@@ -116,15 +124,18 @@ function main () {
 
         notinprod.forEach(function (info) {
           var latest = info.commits[0]
-          console.log('  ' + ('' + info.commits.length).red + ' ' + info.branch.red
-            + ' has ' + (info.commits.length + '').red
-            + ' commits waiting. Latest commit: Author %s, %s. Committer %s, %s.'
-            , latest.author, latest.authordateago, latest.committer.green, latest.committerdateago)
+          var message = '  ';
+          message += spacepad(info.commits.length, 5);
+          message += '  ' + info.branch.red;
+          console.log(message
+            + '  updated %s / committer %s, %s.'
+            , latest.authordateago, latest.committer.green, latest.committerdateago)
         })
       } else {
         console.log('==Congrats, repo has no remote branches waiting to get into '.green + prod.magenta + '. You are a superstar=='.green)
       }
 
+      console.log('');
       console.log('Explanation: rotten = # branches you need to merge into prod')
       console.log('harvested: branches already in prod that need to be deleted.')
       console.log('Please tweet your score! (With the #rotten hashtag :)')
