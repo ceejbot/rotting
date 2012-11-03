@@ -38,13 +38,17 @@ function git(args, cb) {
     // return exec([ 'git', args ], cb)
     return exec('git ' + args, { cwd: repoDir }, cb);
 }
-function trim (s) { return s.trim(); }
-function identity (s) { return s; }
+function trim(s) { return s.trim(); }
+function identity(s) { return s; }
 
-function spacepad(input, padto) {
+function spacepad(input, padto, onRight) {
     var out = '' + input;
-    while (out.length < padto)
-        out = ' ' + out;
+    while (out.length < padto) {
+        if (onRight)
+            out += ' ';
+        else
+            out = ' ' + out;
+    }
     return out;
 }
 
@@ -61,22 +65,85 @@ function handleError(err) {
 
 function main () {
     console.log('Running against', repoDir.green);
-    console.log('Checking that branches are in production branch', prod.green);
+    console.log('Checking branches against production branch', prod.green);
+
+    var merged = [];
+    var notMerged = [];
+    var partiallymerged = [];
+    var longestName = 0;
+
+    function reportAndExit(err) {
+        if (err)
+            handleError(new Error(err.message).stack);
+
+        console.log('');
+        if (merged.length) {
+
+            merged = merged.reverse();
+            console.log('\nHarvested branches:');
+            merged.forEach(function (info) {
+                console.log('    ' + info.branch.green);
+            });
+
+            console.log('\nTo delete all the harvested branches:'.red);
+            var deleteThese =
+                merged.map(function (info) {
+                    var branchName = info.branch.replace(/(.*\/)/, ''); // take everything after the slash
+                    return 'git push origin :' + branchName.red + '; git branch -D ' + branchName.red + ';';
+                })
+                .join('\n');
+            console.log(deleteThese);
+            console.log('\n');
+        } else {
+            console.log('No harvested branches remaining to delete. '.green);
+        }
+
+        if (notMerged.length) {
+            console.log('Branches not merged into production:'.red);
+            if (argv.mostcommits) {
+                notMerged.sort(function (a, b) {
+                    return b.commits.length - a.commits.length;
+                });
+            } else {
+                // oldest first
+                notMerged.sort(function (a, b) {
+                    return a.commits[0].committertimestamp - b.commits[0].committertimestamp;
+                });
+            }
+
+            notMerged.forEach(function (info) {
+                var latest = info.commits[0];
+                var message = ' ';
+                message += spacepad(info.commits.length, 5);
+                message += ' ';
+                message += spacepad(info.branch, longestName, true).red;
+                console.log(message + ' updated %s by %s'
+                    , latest.authordateago, latest.committer.green);
+            });
+        } else {
+            console.log('All branches have been fully merged into '.green + prod.magenta + '.'.green);
+        }
+
+        console.log('\nSummary:');
+        console.log('    rotting branches: ' + notMerged.length.toString().red);
+        console.log('    harvested branches: ' + merged.length.toString().green);
+        process.exit(0);
+    }
+
+
     git('branch -r', function (err, stdout, stderr) {
         if (err) handleError(new Error(err.message).stack);
 
         var branches = stdout.split('\n').map(trim).filter(identity);
-        var inprod = [];
-        var notinprod = [];
-        var partiallyinprod = [];
-
         var prodRegex = new RegExp('/' + prod + '$');
         var dot = 0;
+
         async.forEach(branches, function (branch, cb) {
             if (prodRegex.test(branch))
                 return cb(); // ignore e.g. origin/master
             if (dot++ % 5 === 0)
                 process.stdout.write('.');
+
             // git log dt-bsr --not --remotes="*/release" --format="%H | %ae | %ce | %ar | %cr | %ct"
             git('log ' + branch + ' --not --remotes="*/' + prod + '" --format="%H | %ae | %ce | %ar | %cr | %ct"', function (err, stdout, stderr) {
                 if (err)
@@ -86,78 +153,23 @@ function main () {
                     var fields = s.split(' | ');
                     return {
                         sha: fields[0]
-                    , author: fields[1]
-                    , committer: fields[2]
-                    , authordateago: fields[3]
-                    , committerdateago: fields[4]
-                    , committertimestamp: fields[5] // unix timestamp
+                        , author: fields[1]
+                        , committer: fields[2]
+                        , authordateago: fields[3]
+                        , committerdateago: fields[4]
+                        , committertimestamp: fields[5] // unix timestamp
                     };
                 });
                 if (commits.length === 0) {
-                    inprod.push({ branch: branch, commits: commits });
+                    merged.push({ branch: branch, commits: commits });
                 } else {
-                    notinprod.push({ branch: branch, commits: commits });
+                    notMerged.push({ branch: branch, commits: commits });
+                    if (branch.length > longestName)
+                        longestName = branch.length;
                 }
                 cb();
             });
-        }, function (err) {
-            if (err)
-                handleError(new Error(err.message).stack);
-
-            console.log('');
-            if (inprod.length) {
-                inprod = inprod.reverse();
-                console.log('---\nBranches in prod that can be deleted:');
-                inprod.forEach(function (info) {
-                    console.log('    ' + info.branch.green);
-                });
-                console.log();
-                console.log("==Paste the following to delete them all==".red);
-                var deleteThese =
-                    inprod.map(function (info) {
-                        var branchName = info.branch.replace(/(.*\/)/, ''); // take everything after the slash
-                        return 'git push origin :' + branchName.red + '; git branch -D ' + branchName.red + ';';
-                    })
-                    .join('\n');
-                console.log(deleteThese);
-                console.log();
-                console.log();
-            } else {
-                console.log('==Congrats, repo is clean of branches already merged into '.green + prod.magenta + '=='.green);
-            }
-            if (notinprod.length) {
-                console.log('==Branches waiting to get into prod (or plain rotten). Most oldest/most commits first=='.red);
-                if (argv.mostcommits) {
-                    notinprod.sort(function (a, b) {
-                        return b.commits.length - a.commits.length;
-                    });
-                } else {
-                    // oldest first
-                    notinprod.sort(function (a, b) {
-                        return a.commits[0].committertimestamp - b.commits[0].committertimestamp;
-                    });
-                }
-
-                notinprod.forEach(function (info) {
-                    var latest = info.commits[0];
-                    var message = '    ';
-                    message += spacepad(info.commits.length, 5);
-                    message += '    ' + info.branch.red;
-                    console.log(message + '    updated %s / committer %s, %s.'
-                        , latest.authordateago, latest.committer.green, latest.committerdateago);
-                });
-            } else {
-                console.log('==Congrats, repo has no remote branches waiting to get into '.green + prod.magenta + '. You are a superstar=='.green);
-            }
-
-            console.log('');
-            console.log('Explanation: rotten = # branches you need to merge into prod');
-            console.log('harvested: branches already in prod that need to be deleted.');
-            console.log('Please tweet your score! (With the #rotten hashtag :)');
-            console.log('    Your rotten score is ' +
-                ('#rotten:' + notinprod.length+'/harvested:'+inprod.length).green);
-            process.exit(0);
-        });
+        }, reportAndExit);
     });
 }
 
