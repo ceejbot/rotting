@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-var path = require('path');
-var exec = require('child_process').exec;
-var async = require('async');
-var colors = require('colors');
+var
+	async = require('async'),
+	colors = require('colors')
+	exec = require('child_process').exec,
+	path = require('path')
+	;
 var optimist =
     require('optimist')
         .alias('h', 'help')
@@ -22,10 +24,9 @@ var optimist =
         .usage('Usage: $0 --repo /path-to-git-repo --prod master')
         ;
 
-var help = optimist.help();
 var argv = optimist.argv;
 if (argv.help) {
-    console.log(help);
+    console.log(optimist.help());
     return;
 }
 
@@ -54,18 +55,16 @@ function spacepad(input, padto, onRight) {
 
 function handleError(err) {
     if (/spawn Unknown system errno 23/.test(err.message)) {
-        console.log('\n', new Error(err.message).stack);
-        console.log('ERROR. Please be sure you\'ve specified a branch that exists.\nI have' +
-            ' reason to believe that the branch ' + prod.red +' does not exist in' +
-            ' this repo.');
+        console.log('Does branch ' + prod.magenta + ' exist in this repo?');
     } else {
-        console.log('Please report bugs to https://github.com/dtrejo/rotten, thank you.');
+        console.log('\n', new Error(err.message).stack);
+        console.log('Please report this bug at https://github.com/ceejbot/rotten .');
     }
 }
 
 function main () {
-    console.log('Running against', repoDir.green);
-    console.log('Checking branches against production branch', prod.green);
+    console.log('Running against', repoDir.magenta);
+    console.log('Checking branches against production branch', prod.magenta);
 
     var merged = [];
     var notMerged = [];
@@ -73,8 +72,10 @@ function main () {
     var longestName = 0;
 
     function reportAndExit(err) {
-        if (err)
+        if (err) {
+        	console.log(err);
             handleError(new Error(err.message).stack);
+        }
 
         console.log('');
         if (merged.length) {
@@ -85,17 +86,17 @@ function main () {
                 console.log('    ' + info.branch.green);
             });
 
-            console.log('\nTo delete all the harvested branches:'.red);
+            console.log('\nTo delete all the harvested branches:');
             var deleteThese =
                 merged.map(function (info) {
                     var branchName = info.branch.replace(/(.*\/)/, ''); // take everything after the slash
-                    return 'git push origin :' + branchName.red + '; git branch -D ' + branchName.red + ';';
+                    return 'git push origin :' + branchName.green + '; git branch -D ' + branchName.green + ';';
                 })
                 .join('\n');
             console.log(deleteThese);
             console.log('\n');
         } else {
-            console.log('No harvested branches remaining to delete. '.green);
+            console.log('No harvested branches remaining to delete. ');
         }
 
         if (notMerged.length) {
@@ -121,7 +122,7 @@ function main () {
                     , latest.authordateago, latest.committer.green);
             });
         } else {
-            console.log('All branches have been fully merged into '.green + prod.magenta + '.'.green);
+            console.log('All branches have been fully merged into ' + prod.magenta + '.');
         }
 
         console.log('\nSummary:');
@@ -132,7 +133,9 @@ function main () {
 
 
     git('branch -r', function (err, stdout, stderr) {
-        if (err) handleError(new Error(err.message).stack);
+        if (err) {
+        	handleError(new Error(err.message).stack);
+        }
 
         var branches = stdout.split('\n').map(trim).filter(identity);
         var prodRegex = new RegExp('/' + prod + '$');
