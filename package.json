@@ -10,7 +10,6 @@
   "main": "rotten.js",
   "dependencies": {
     "colors": "~0.6.0-1",
-    "async": "~0.1.22",
     "optimist": "~0.3.4"
   },
   "devDependencies": {},
