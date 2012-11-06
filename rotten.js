@@ -5,7 +5,7 @@ var
 	exec = require('child_process').exec,
 	path = require('path')
 	;
-	
+
 var optimist = require('optimist')
 	.alias('h', 'help')
 
@@ -16,10 +16,14 @@ var optimist = require('optimist')
 	.alias('p', 'prod')
 	.default('p', 'master')
 	.describe('p', 'the branch you have running in production')
-	
+
 	.alias('c', 'commits')
 	.default('c', false)
 	.describe('c', 'sort rotten branches by commit count instead of age')
+
+	.alias('d', 'deadwood')
+	.default('d', false)
+	.describe('d', 'show git branch delete commands for all harvested branches')
 
 	.usage('Usage: $0 --repo /path/to/git/repo --prod master')
 	;
@@ -84,16 +88,20 @@ function main()
 			merged = merged.reverse();
 			console.log('\nHarvested branches:');
 			merged.forEach(function (info) { console.log('	 ' + info.branch.green); });
+			console.log('');
 
-			console.log('\nTo delete all the harvested branches:');
-			var deleteThese =
-				merged.map(function (info)
-				{
-					var branchName = info.branch.replace(/(.*\/)/, ''); // take everything after the slash
-					return 'git push origin :' + branchName.green + '; git branch -D ' + branchName.green + ';';
-				}).join('\n');
-			console.log(deleteThese);
-			console.log('\n');
+            if (argv.deadwood)
+            {
+                console.log('To delete all the harvested branches:');
+                var deleteThese =
+                    merged.map(function (info)
+                    {
+                        var branchName = info.branch.replace(/(.*\/)/, ''); // take everything after the slash
+                        return 'git push origin :' + branchName.green + '; git branch -D ' + branchName.green + ';';
+                    }).join('\n');
+                console.log(deleteThese);
+                console.log('\n');
+            }
 		}
 		else
 			console.log('No harvested branches remaining to delete. ');
@@ -139,12 +147,12 @@ function main()
 			handleError(new Error(err.message).stack);
 		}
 
-		var branches = stdout.split('\n').map(trim).filter(identity);		
-		
+		var branches = stdout.split('\n').map(trim).filter(identity);
+
 		var prodRegex = new RegExp('/' + prod + '$');
 		var dot = 0;
 		var branch, gitcmd;
-		
+
 		function handleGitOutput(stdout, stderr)
 		{
 			var commits = stdout.split('\n').map(trim).filter(identity).map(function (s)
@@ -168,32 +176,32 @@ function main()
 					longestName = branch.length;
 			}
 		}
-		
+
 		function processNextBranch()
 		{
 			branch = branches.pop();
 			while (prodRegex.test(branch) && branches.length)
 				branch = branches.pop();
-			
+
 			if (branches.length === 0)
-				return reportAndExit();;
-			
+				return reportAndExit();
+
 			if (dot++ % 5 === 0)
 				process.stdout.write('.');
 			gitcmd = 'log ' + branch + ' --not --remotes="*/' + prod + '" --format="%H | %ae | %ce | %ar | %cr | %ct"';
 			git(gitcmd, continuer);
 		}
-		
+
 		var continuer = function(err, stdout, stderr)
 		{
 			if (err)
 				console.log('error handling branch ' + branch.red); // TODO
 			else
 				handleGitOutput(stdout, stderr);
-				
+
 			processNextBranch();
 		};
-		
+
 		processNextBranch();
 	});
 }
