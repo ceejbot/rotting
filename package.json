@@ -1,6 +1,10 @@
 {
-	"author": "David Trejo <david.daniel.trejo@gmail.com> (http://dtrejo.com/)",
-	"name": "rotten",
+	"contributors":
+	[ 
+		"David Trejo <david.daniel.trejo@gmail.com> (http://dtrejo.com/)",
+		"C J Silverio <ceejceej@gmail.com> (http://ceejbot.tumblr.com/)"
+	],
+	"name": "rotting",
 	"description": "list harvested & unharvested rotting branches lingering in your git repos",
 	"version": "1.2.0",
 	"homepage": "https://github.com/ceejbot/rotten",
@@ -8,7 +12,7 @@
 	{
 		"url": "git@github.com:ceejbot/rotten.git"
 	},
-	"main": "rotten.js",
+	"main": "rotting.js",
 	"dependencies":
 	{
 		"colors": "0.6.x",
@@ -23,6 +27,6 @@
 	"preferGlobal": true,
 	"bin":
 	{
-		"rotten": "./rotten.js"
+		"rotting": "./rotting.js"
 	}
 }
