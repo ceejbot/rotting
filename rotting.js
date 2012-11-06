@@ -11,11 +11,11 @@ var optimist = require('optimist')
 
 	.alias('r', 'repo')
 	.default('r', process.cwd())
-	.describe('r', 'the repo you\'d like to examine for rotting code')
+	.describe('r', 'the repo to examine for rotting code')
 
 	.alias('p', 'prod')
 	.default('p', 'master')
-	.describe('p', 'the branch you have running in production')
+	.describe('p', 'the branch running in production')
 
 	.alias('c', 'commits')
 	.default('c', false)
