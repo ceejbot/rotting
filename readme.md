@@ -28,6 +28,8 @@ Summary:
 	 harvested branches: 1
 ```
 
+My most common usage pattern for this tool is to look for branches that include my username, to make sure I'm cleaning up as I work. You can grep the output if you like, or use the `--filter` option to consider only branches matching the given pattern. E.g., `rotting -prod release -f biz\|ceej`.
+
 ## Usage
 
 ```
@@ -38,6 +40,7 @@ Options:
   -p, --prod      the branch running in production                            [default: "master"]
   -c, --commits   sort rotten branches by commit count instead of age         [default: false]
   -d, --deadwood  show git branch delete commands for all harvested branches  [default: false]
+  -f, --filter    filter results to branches that contain this pattern         [default: ""]
 ```
 
 By default rotten branches are sorted by age, with the oldest unharvested branch shown first. You can instead sort by the number of unharvested commits by passing the `--commits` option.

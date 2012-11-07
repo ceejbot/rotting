@@ -24,6 +24,10 @@ var optimist = require('optimist')
 	.alias('d', 'deadwood')
 	.default('d', false)
 	.describe('d', 'show git branch delete commands for all harvested branches')
+	
+	.alias('f', 'filter')
+	.default('f', '')
+	.describe('f', 'filter results to branches that contain this string')
 
 	.usage('Usage: $0 --repo /path/to/git/repo --prod master')
 	;
@@ -74,6 +78,8 @@ function main()
 {
 	console.log('Running against', repoDir.magenta);
 	console.log('Checking branches against production branch', prod.magenta);
+	if (argv.filter)
+		console.log('Considering only branches matching', argv.filter.magenta);
 
 	var merged = [];
 	var notMerged = [];
@@ -82,17 +88,16 @@ function main()
 
 	function reportAndExit()
 	{
-		console.log('');
+		console.log('\n');
 		if (merged.length)
 		{
 			merged = merged.reverse();
-			console.log('\nHarvested branches:');
+			console.log('Harvested branches:');
 			merged.forEach(function (info) { console.log('	 ' + info.branch.green); });
-			console.log('');
 
             if (argv.deadwood)
             {
-                console.log('To delete all the harvested branches:');
+                console.log('\nTo delete all the harvested branches:');
                 var deleteThese =
                     merged.map(function (info)
                     {
@@ -100,16 +105,16 @@ function main()
                         return 'git push origin :' + branchName.green + '; git branch -D ' + branchName.green + ';';
                     }).join('\n');
                 console.log(deleteThese);
-                console.log('\n');
             }
 		}
 		else
 			console.log('No harvested branches remaining to delete. ');
 
+		console.log('');
 		if (notMerged.length)
 		{
-			console.log('Branches not merged into production:'.red);
-			if (argv.mostcommits)
+			console.log('Branches not merged into production:');
+			if (argv.commits)
 			{
 				notMerged.sort(function (a, b) { return b.commits.length - a.commits.length; });
 			}
@@ -149,7 +154,10 @@ function main()
 
 		var branches = stdout.split('\n').map(trim).filter(identity);
 
-		var prodRegex = new RegExp('/' + prod + '$');
+		var productionPattern = new RegExp('/' + prod + '$');
+		var filterPattern;
+		if (argv.filter.length)
+			filterPattern = new RegExp(argv.filter);
 		var dot = 0;
 		var branch, gitcmd;
 
@@ -180,7 +188,9 @@ function main()
 		function processNextBranch()
 		{
 			branch = branches.pop();
-			while (prodRegex.test(branch) && branches.length)
+			while (productionPattern.test(branch) && branches.length)
+				branch = branches.pop();
+			while (filterPattern && !filterPattern.test(branch) && branches.length)
 				branch = branches.pop();
 
 			if (branches.length === 0)
