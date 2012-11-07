@@ -8,8 +8,8 @@
 	"description": "list harvested & unharvested rotting branches lingering in your git repos",
 	"keywords": ["git", "repositories", "branching", "tidy-mindedness" ],
 	"version": "1.0.0",
-	"homepage": "https://github.com/ceejbot/rotten",
-	"repository": { "url": "git@github.com:ceejbot/rotting.git" },
+	"homepage": "https://github.com/ceejbot/rotting",
+	"repository": { "type": "git", "url": "git@github.com:ceejbot/rotting.git" },
 	"bugs": "https://github.com/ceejbot/rotting/issues",
 	"main": "rotting.js",
 	"dependencies":

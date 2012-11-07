@@ -71,7 +71,7 @@ function handleError(err)
 	else
 	{
 		console.log('\n', new Error(err.message).stack);
-		console.log('Please report this bug at https://github.com/ceejbot/rotten .');
+		console.log('Please report this bug using npm bugs.');
 	}
 }
 
