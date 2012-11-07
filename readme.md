@@ -40,8 +40,7 @@ Options:
   -p, --prod      the branch running in production                            [default: "master"]
   -c, --commits   sort rotten branches by commit count instead of age         [default: false]
   -d, --deadwood  show git branch delete commands for all harvested branches  [default: false]
-  -f, --filter    filter results to branches that contain this pattern         [default: ""]
-```
+  -f, --filter    filter results to branches that contain this string         [default: ""]```
 
 By default rotten branches are sorted by age, with the oldest unharvested branch shown first. You can instead sort by the number of unharvested commits by passing the `--commits` option.
 

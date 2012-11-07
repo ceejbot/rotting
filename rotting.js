@@ -122,7 +122,7 @@ function main()
 			else
 			{
 				// oldest first
-				notMerged.sort(function (a, b) { return a.commits[0].committertimestamp - b.commits[0].committertimestamp; });
+				notMerged.sort(function (a, b) { return a.commits[0].committerTimestamp - b.commits[0].committerTimestamp; });
 			}
 
 			notMerged.forEach(function (info)
@@ -132,7 +132,7 @@ function main()
 				message += spacepad(info.commits.length, 5);
 				message += ' ';
 				message += spacepad(info.branch, longestName, true).red;
-				console.log(message + ' updated %s by %s', latest.authordateago, latest.committer.green);
+				console.log(message + ' updated %s by %s', latest.createdRelative, latest.committer.green);
 			});
 		}
 		else
@@ -183,9 +183,9 @@ function main()
 						sha: fields[0]
 						, author: fields[1]
 						, committer: fields[2]
-						, authordateago: fields[3]
-						, committerdateago: fields[4]
-						, committertimestamp: fields[5] // unix timestamp
+						, createdRelative: fields[3]
+						, committerRelative: fields[4]
+						, committerTimestamp: fields[5] // unix timestamp
 					};
 				});
 				if (commits.length === 0)
