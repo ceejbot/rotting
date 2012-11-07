@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var
+	async = require('async'),
 	colors = require('colors'),
 	exec = require('child_process').exec,
 	path = require('path')
@@ -161,58 +162,51 @@ function main()
 		var dot = 0;
 		var branch, gitcmd;
 
-		function handleGitOutput(stdout, stderr)
+		function processBranch(branch, callback)
 		{
-			var commits = stdout.split('\n').map(trim).filter(identity).map(function (s)
-			{
-				var fields = s.split(' | ');
-				return {
-					sha: fields[0]
-					, author: fields[1]
-					, committer: fields[2]
-					, authordateago: fields[3]
-					, committerdateago: fields[4]
-					, committertimestamp: fields[5] // unix timestamp
-				};
-			});
-			if (commits.length === 0)
-				merged.push({ branch: branch, commits: commits });
-			else
-			{
-				notMerged.push({ branch: branch, commits: commits });
-				if (branch.length > longestName)
-					longestName = branch.length;
-			}
-		}
-
-		function processNextBranch()
-		{
-			branch = branches.pop();
-			while (productionPattern.test(branch) && branches.length)
-				branch = branches.pop();
-			while (filterPattern && !filterPattern.test(branch) && branches.length)
-				branch = branches.pop();
-
-			if (branches.length === 0)
-				return reportAndExit();
-
 			if (dot++ % 5 === 0)
 				process.stdout.write('.');
 			gitcmd = 'log ' + branch + ' --not --remotes="*/' + prod + '" --format="%H | %ae | %ce | %ar | %cr | %ct"';
-			git(gitcmd, continuer);
+			git(gitcmd, function(err, stdout, stderr)
+			{
+				if (err)
+				{
+					console.log('error handling branch ' + branch.red); // TODO
+					console.log(err);
+					return callback();
+				}
+	
+				var commits = stdout.split('\n').map(trim).filter(identity).map(function (s)
+				{
+					var fields = s.split(' | ');
+					return {
+						sha: fields[0]
+						, author: fields[1]
+						, committer: fields[2]
+						, authordateago: fields[3]
+						, committerdateago: fields[4]
+						, committertimestamp: fields[5] // unix timestamp
+					};
+				});
+				if (commits.length === 0)
+					merged.push({ branch: branch, commits: commits });
+				else
+				{
+					notMerged.push({ branch: branch, commits: commits });
+					if (branch.length > longestName)
+						longestName = branch.length;
+				}
+				callback();
+			});
 		}
 
-		var continuer = function(err, stdout, stderr)
+		// filter branches for matches
+		var interesting = branches.filter(function(b)
 		{
-			if (err)
-				console.log('error handling branch ' + branch.red); // TODO
-			else
-				handleGitOutput(stdout, stderr);
-
-			processNextBranch();
-		};
-
-		processNextBranch();
+			if (!productionPattern.test(b) && (!filterPattern || filterPattern.test(b)))
+				return b;
+		});
+		async.forEachLimit(interesting, 50, processBranch, reportAndExit);
 	});
 }
 
