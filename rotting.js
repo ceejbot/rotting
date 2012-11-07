@@ -25,7 +25,7 @@ var optimist = require('optimist')
 	.alias('d', 'deadwood')
 	.default('d', false)
 	.describe('d', 'show git branch delete commands for all harvested branches')
-	
+
 	.alias('f', 'filter')
 	.default('f', '')
 	.describe('f', 'filter results to branches that contain this string')
@@ -175,7 +175,7 @@ function main()
 					console.log(err);
 					return callback();
 				}
-	
+
 				var commits = stdout.split('\n').map(trim).filter(identity).map(function (s)
 				{
 					var fields = s.split(' | ');
@@ -201,9 +201,10 @@ function main()
 		}
 
 		// filter branches for matches
+		var headPattern = /origin\/HEAD \-> /;
 		var interesting = branches.filter(function(b)
 		{
-			if (!productionPattern.test(b) && (!filterPattern || filterPattern.test(b)))
+			if (!productionPattern.test(b) && !headPattern.test(b) && (!filterPattern || filterPattern.test(b)))
 				return b;
 		});
 		async.forEachLimit(interesting, 50, processBranch, reportAndExit);
