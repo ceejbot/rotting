@@ -28,5 +28,6 @@
 	"bin":
 	{
 		"rotting": "./rotting.js"
-	}
+	},
+	"license": "BSD"
 }
