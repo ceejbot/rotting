@@ -29,5 +29,5 @@
 	{
 		"rotting": "./rotting.js"
 	},
-	"license": "BSD"
+	"license": "MIT"
 }

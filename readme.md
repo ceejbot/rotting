@@ -48,3 +48,7 @@ By default rotten branches are sorted by age, with the oldest unharvested branch
 ## Credits
 
 Original rotting script called `rotten` by [David Trejo](http://dtrejo.com/) over [in his repo](https://github.com/DTrejo/rotten).
+
+## License
+
+MIT.
