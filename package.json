@@ -1,13 +1,14 @@
 {
 	"contributors":
-	[ 
+	[
 		"David Trejo <david.daniel.trejo@gmail.com> (http://dtrejo.com/)",
-		"C J Silverio <ceejceej@gmail.com> (http://ceejbot.tumblr.com/)"
+		"C J Silverio <ceejceej@gmail.com> (http://ceejbot.tumblr.com/)",
+		"Kip Gebhardt <kip.gebhardt@voxer.com>"
 	],
 	"name": "rotting",
 	"description": "list harvested & unharvested rotting branches lingering in your git repos",
 	"keywords": ["git", "repositories", "branching", "tidy-mindedness" ],
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"homepage": "https://github.com/ceejbot/rotting",
 	"repository": { "type": "git", "url": "git@github.com:ceejbot/rotting.git" },
 	"bugs": "https://github.com/ceejbot/rotting/issues",
