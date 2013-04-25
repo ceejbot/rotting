@@ -166,7 +166,7 @@ function main()
 		{
 			if (dot++ % 5 === 0)
 				process.stdout.write('.');
-			gitcmd = 'log ' + branch + ' --not --remotes="*/' + prod + '" --format="%H | %ae | %ce | %ar | %cr | %ct"';
+			gitcmd = 'log "' + branch + '" --not --remotes="*/' + prod + '" --format="%H | %ae | %ce | %ar | %cr | %ct"';
 			git(gitcmd, function(err, stdout, stderr)
 			{
 				if (err)
