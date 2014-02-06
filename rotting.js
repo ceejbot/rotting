@@ -7,7 +7,7 @@ var
 	path = require('path')
 	;
 
-var optimist = require('optimist')
+var yargs = require('yargs')
 	.alias('h', 'help')
 
 	.alias('r', 'repo')
@@ -33,10 +33,10 @@ var optimist = require('optimist')
 	.usage('Usage: $0 --repo /path/to/git/repo --prod master')
 	;
 
-var argv = optimist.argv;
+var argv = yargs.argv;
 if (argv.help)
 {
-	console.log(optimist.help());
+	console.log(yargs.help());
 	return;
 }
 
@@ -180,12 +180,12 @@ function main()
 				{
 					var fields = s.split(' | ');
 					return {
-						sha: fields[0]
-						, author: fields[1]
-						, committer: fields[2]
-						, createdRelative: fields[3]
-						, committerRelative: fields[4]
-						, committerTimestamp: fields[5] // unix timestamp
+						sha: fields[0],
+						author: fields[1],
+						committer: fields[2],
+						createdRelative: fields[3],
+						committerRelative: fields[4],
+						committerTimestamp: fields[5] // unix timestamp
 					};
 				});
 				if (commits.length === 0)
