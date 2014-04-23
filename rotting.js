@@ -103,7 +103,7 @@ function main()
                     merged.map(function (info)
                     {
                         var branchName = info.branch.replace(/(.*\/)/, ''); // take everything after the slash
-                        return 'git push origin :' + branchName.green + '; git branch -D ' + branchName.green + ';';
+                        return 'git push origin :' + branchName.green + '; git branch -d ' + branchName.green + ';';
                     }).join('\n');
                 console.log(deleteThese);
             }

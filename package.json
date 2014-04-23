@@ -15,9 +15,9 @@
 	],
 	"dependencies":
 	{
-		"async":  "^0.2.10",
+		"async":  "^0.7.0",
 		"colors": "^0.6.2",
-		"yargs":  "^1.0.15"
+		"yargs":  "^1.2.1"
 	},
 	"preferGlobal": true,
 	"main":         "rotting.js",
